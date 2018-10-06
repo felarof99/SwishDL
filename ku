@@ -1,0 +1,124 @@
+#!/bin/bash
+
+set -a
+. ./kube-cluster-config.sh
+scopes=storage-rw,compute-rw,cloud-platform,default,gke-default
+set +a
+
+cmd_init() { # initialize the cluster
+    set -e
+    gcloud config set project $project
+    gcloud config set compute/zone $zone
+    gcloud config set container/new_scopes_behavior true
+    gcloud config set container/use_v1_api true
+    gcloud config set container/cluster $cluster
+    gcloud beta container clusters create $cluster \
+        --zone $zone --cluster-version 1.9 \
+        --machine-type ${cpu_machine:-n1-standard-8} \
+        --enable-autorepair \
+        --scopes $scopes \
+        --num-nodes ${cpu_nodes:-3} \
+        --enable-autoscaling --min-nodes 1 --max-nodes 30
+    gcloud container clusters get-credentials $cluster
+    gcloud container clusters list
+    cmd_daemonset
+    cmd_cache_server_init
+    cmd_add
+}
+
+# Start the NVIDIA daemonset, to install NVIDIA drivers
+cmd_daemonset() { 
+    kubectl apply -f https://raw.githubusercontent.com/GoogleCloudPlatform/container-engine-accelerators/stable/nvidia-driver-installer/cos/daemonset-preloaded.yaml
+}
+
+cmd_cache_server_init() {
+    kubectl create -f ./cache-server/service.yml
+    kubectl create -f ./cache-server/deploy.yml
+}
+
+# Create a new node-pool with each node containing number of GPUs passed by argument
+cmd_add() {
+    gcloud beta container node-pools create gpu-pool \
+    --accelerator type=$gpu_type,count=$gpu_per_node \
+    --cluster $cluster \
+    --zone $zone \
+    --scopes $scopes \
+    --num-nodes $gpu_nodes \
+    --enable-autoscaling --min-nodes 1 --max-nodes $(gpu_max_nodes:-5) \
+    --machine-type ${gpu_machine:-n1-standard-16}
+}
+
+# Get cluster status
+cmd_status() { 
+    gcloud container clusters list
+    gcloud container node-pools list --cluster $cluster
+}
+
+# Get current list of pods
+cmd_pods() {
+    kubectl get pods -a
+}
+
+# Get current list of nodes
+cmd_stats() {
+    gcloud container clusters list
+    echo
+    kubectl get services
+    echo
+    kubectl get pods -a | awk '!/STATUS/{sub("-[a-z0-9]*$", "", $1); print $1, $3}' | sort | uniq -c
+}
+
+# Build the cloud image
+cmd_build() {
+    git submodule update --remote --merge
+    gcloud container builds submit --tag $image --timeout=3600 .
+}
+
+# Kill the cluster
+cmd_kill() {
+    yes | gcloud container clusters delete $cluster
+}
+
+getpod() {
+    match=$(kubectl get pods --show-all | awk "/$1/"'{print $1; exit}')
+    if test "$match" == ""; then
+        echo "$1: not found" 1>&2
+        exit 99
+    fi
+    echo "$match" 1>&2
+    echo "$match"
+}
+
+# Connect to a cluster
+cmd_run() { 
+    target=$1
+    shift
+    kubectl exec -ti $(getpod $target) "${@:-/bin/bash}"
+}
+
+# Connect to a cluster
+cmd_forward() {
+    target="$1"
+    shift
+    match=$(getpod $target)
+    kubectl port-forward "$match" "$@"
+}
+
+# Print log
+cmd_log() {
+    target="$1"
+    shift
+    match=$(getpod $target)
+    kubectl logs "$match"
+}
+
+# Display this help
+cmd_help() {
+    sed '/^cmd_.*{/!d;s/^cmd_//;s/() *{ *# */ -- /' $0
+}
+
+
+cmd="$1"
+shift
+eval cmd_$cmd "$@"
+

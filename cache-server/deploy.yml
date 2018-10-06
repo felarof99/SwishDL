@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: cache-server
+spec:
+  replicas: 1
+  selector:
+    app: nginx-cache-server
+  template:
+    metadata:
+      name: cache-server
+      labels:
+        app: nginx-cache-server
+    spec:
+      containers:
+      - name: cache-server
+        image: gcr.io/nvlpr-research/cache-server:v1
+        ports:
+        - containerPort: 3128

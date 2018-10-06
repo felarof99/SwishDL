@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: cache-layer-service
+spec:
+  selector:
+    app: nginx-cache-server
+  ports:
+  - protocol: TCP
+    port: 3128
+    targetPort: 3128

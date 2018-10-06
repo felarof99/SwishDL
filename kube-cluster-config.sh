@@ -1,0 +1,11 @@
+cluster_name=imagenet-training
+zone=us-west1-b
+project=nvlpr-research
+image=gcr.io/$project/large_scale_imagenet
+cpu_machine=n1-standard-8
+cpu_nodes=1
+gpu_machine=n1-highmem-8
+gpu_type=nvidia-tesla-v100
+gpu_nodes=1
+gpu_per_node=1
+gpu_max_nodes=5

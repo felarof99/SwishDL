@@ -1,0 +1,12 @@
+build
+*.pyc
+*~
+*.tgz
+*.pt
+.ipynb_checkpoints
+.cache/*
+data/
+dltrainer/test/*
+dltrainer/testdata/*
+dltrainer/log/*
+README.py
