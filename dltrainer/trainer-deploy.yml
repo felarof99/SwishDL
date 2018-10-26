@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/cloudinfra-219900/dloncloud:v1 # TODO Put location of your image on cloud repository
+        image: gcr.io/cloudinfra-219900/dloncloud:v2 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         command: ["python"]
