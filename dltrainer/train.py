@@ -27,7 +27,7 @@ import calendar
 import time
 import cProfile
 
-from dataset_zmq import ImageNetDataset
+from dataset import ImageNetDataset
 from model import Model
 
 from tensorboardX import SummaryWriter

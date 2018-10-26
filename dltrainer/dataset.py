@@ -90,31 +90,3 @@ class ImageNetDataset(object):
         self.inputs_cached = inputs
 
         return inputs, targets, time_to_create_batch
-
-    def getGPUCachedBatch(self):
-        start_time = time.time()
-
-        if self.inputs_cached is None or self.targets_cached is None:
-            self.inputs_cached, self.targets_cached, _ = self.getNextBatch()
-
-            self.inputs_cached = self.inputs_cached.cuda()
-            self.targets_cached = self.targets_cached.cuda()
-
-        end_time = time.time()
-        total_time_taken = end_time - start_time
-
-        return self.inputs_cached, self.targets_cached, total_time_taken
-
-    def getCPUCachedBatch(self):
-        start_time = time.time()
-
-        if self.inputs_cached is None or self.targets_cached is None:
-            self.inputs_cached, self.targets_cached, _ = self.getNextBatch()
-
-        inputs_cached_temp = self.inputs_cached.cuda()
-        targets_cached_temp = self.targets_cached.cuda()
-
-        end_time = time.time()
-        total_time_taken = end_time - start_time
-
-        return inputs_cached_temp, targets_cached_temp, total_time_taken

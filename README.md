@@ -5,10 +5,8 @@
 This repo contains scripts and instructions to create your own Cloud Layer for efficiently running and scaling your DL training jobs.
 
 Recommended setup:
-1. Shard your data according dlinputs format. Please read instructions on how to do that [here](https://github.com/NVlabs/dlinputs).  
-Sharded versions of CIFAR10, CIFAR100 and ImageNet are already available at below locations.   
-    * _CIFAR10_: http://storage.googleapis.com/lpr-demo   
-    * _CIFAR100_: http://storage.googleapis.com/lpr-demo   
+1. Use sharded versions of CIFAR10, and ImageNet that are already available at below locations.   
+    * _CIFAR10_: http://storage.googleapis.com/lpr-demo     
     * _ImageNet_: http://storage.googleapis.com/lpr-imagenet   
 1. Create kubernetes cluster to meet your needs - GPU type (K80, P100, V100), Number of GPUs per node (1, 2, 4, 8).
 1. Create a docker image of your trainer.
@@ -31,15 +29,14 @@ Contains parameters that can be configured to customize the kubernetes setup
 ## Initial setup
 Before proceeding, please ensure you have following packages installed locally; follow instructions available online.
 1. Docker
-1. [nvidia-docker](https://github.com/NVIDIA/nvidia-docker)
 1. Google Cloud SDK: After installing Google Cloud SDK, run `gcloud init`
 
 
 ## Kubernetes cluster setup:
-1. Set parameters in kube-cluster-config
+1. Set parameters in `kube-cluster-config.sh`
 2. Call `./ku init`. Please don't kill the execution inbetween. The command does the following:
     - Creates a kubernetes clusters
-    - Creates a GPU node-pool with each node containing 1 GPU
+    - Creates a GPU node-pool with each node containing requested number of GPUs
     - Install cache-server and deploys it into the cluster
 
 ## Deploying PyTorch trainer on Kubernetes cluster:
