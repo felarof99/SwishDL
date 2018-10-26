@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/nvlpr-research/imagenet-metrics:v16 # TODO Put location of your image on cloud repository
+        image: gcr.io/cloudinfra-219900/dloncloud:v1 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         command: ["python"]
@@ -37,5 +37,5 @@ spec:
           limits:
             nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
       nodeSelector:
-        cloud.google.com/gke-accelerator: nvidia-tesla-v100
+        cloud.google.com/gke-accelerator: nvidia-tesla-p100
       restartPolicy: OnFailure

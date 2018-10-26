@@ -92,5 +92,3 @@ COPY ./*.py ./
 
 # Setting cache-server as the proxy
 ENV http_proxy http://cache-layer-service:3128
-
-COPY ./testdata/*.tgz ./testdata/*.tgz
