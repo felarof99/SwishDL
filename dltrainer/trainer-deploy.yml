@@ -29,10 +29,6 @@ spec:
         - "128"
         - "--profile-freq"
         - "0.5"
-        - "--prefetch-workers"
-        - "6"
-        - "--prefetch-size"
-        - "48"
         resources:          
           limits:
             nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
