@@ -89,8 +89,6 @@ class Profiler(object):
         self.timer.start()
 
         self.timestamp = self.timestamp + 1
-        self.logger.log("Profiling...")
-
         try:
             if log_gpu:
                 self.log_gpustat(self.timestamp)

@@ -17,7 +17,7 @@ cmd_init() { # initialize the cluster
         --machine-type ${cpu_machine:-n1-standard-8} \
         --enable-autorepair \
         --scopes $scopes \
-        --num-nodes ${cpu_nodes:-3} \
+        --num-nodes $cpu_nodes \
         --enable-autoscaling --min-nodes 1 --max-nodes 30
     gcloud container clusters get-credentials $cluster
     gcloud container clusters list

@@ -45,6 +45,8 @@ parser.add_argument('--iter', type=int, default=300, metavar='N')
 
 parser.add_argument('--batch-size', type=int, default=32, metavar='N')
 parser.add_argument('--use-remote', action='store_true', default=False)
+parser.add_argument('--gpu-cached', action='store_true', default=False)
+parser.add_argument('--cpu-cached', action='store_true', default=False)
 
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
 parser.add_argument('--weight-decay', type=float, default=1e-4)
@@ -113,6 +115,16 @@ def train(iter_count, inputs, targets):
             tb_logger.add_scalar('train/loss', curr_mini_loss, iter_count)
             tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
 
+            try:
+                cmd = "gsutil rsync -r log gs://cloud-infra-logs/"
+                # cmd = "gsutil cp train.py gs://large-scale-dl/train.py"
+                
+                print("Running gsutil cmd", cmd)
+
+                assert os.system(cmd) == 0
+            except Exception as e:
+                print("ERROR: gsutil failed!", e)
+
 def test(iter_count, inputs, targets):
     net.eval()
 
@@ -140,8 +152,6 @@ def main():
         log_dir = os.path.join('log', args.expid, 
             args.model, 
             "batch_size_"+str(args.batch_size),
-            "use_remote"+str(args.use_remote),
-            "profile_freq"+str(args.profile_freq),
             datetime.now().isoformat())
 
         tb_logger = SummaryWriter(log_dir=log_dir)
@@ -154,8 +164,6 @@ def main():
         profiler.log(log_network=args.profile_networkio)
 
     tb_logger.add_text('params/model', str(args.model), 1)
-    tb_logger.add_text('params/is-gpu-cached', str(args.gpu_cached), 1)
-    tb_logger.add_text('params/is-cpu-cached', str(args.cpu_cached), 1)
     tb_logger.add_text('params/batch_size', str(args.batch_size), 1)
 
     iter_count = 0
@@ -165,22 +173,13 @@ def main():
 
     if args.use_remote:
         dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000003.tgz", 
-                                zcom_port=args.zcom_port,
                                 mini_batch_size=args.batch_size,
-                                num_epochs=args.epochs,
-                                log_dir=log_dir,
-                                num_workers=args.num_workers,
-                                prefetch_workers=args.prefetch_workers,
-                                prefetch_size=args.prefetch_size)    
+                                num_epochs=args.epochs)
     else:
         dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000003.tgz", 
-                                zcom_port=args.zcom_port,
                                 mini_batch_size=args.batch_size,
-                                num_epochs=args.epochs,
-                                log_dir=log_dir,
-                                num_workers=args.num_workers,
-                                prefetch_workers=args.prefetch_workers,
-                                prefetch_size=args.prefetch_size)  
+                                num_epochs=args.epochs)
+
     while True:
         if iter_count > args.iter:
             flat_profiler.disable()
