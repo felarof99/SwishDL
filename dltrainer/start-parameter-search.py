@@ -18,7 +18,8 @@ def gen_script(base_script, odir):
 			temp.append(lr)
 			temp.append(decay_key)
 			temp.append(decay)
-			
+			temp = ["{}str(i){}".format('\'', '\'') for i in temp]
+			#temp = map(str, temp)
 			with open('{}/deploy-lr-{}-decay-{}.yml'.format(odir,lr, decay), "w") as ftemp:
 				yaml.dump(config, ftemp)
 			

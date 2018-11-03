@@ -51,7 +51,7 @@ Change to dltrainer folder.
 `docker tag name_of_your_docker_image gcr.io/$GCLOUD_PROJECT_NAME/name_of_your_docker_image:v1` 
 4. Upload docker image to a cloud repository.     
 `gcloud docker -- push gcr.io/$GCLOUD_PROJECT_NAME/name_of_your_docker_image:v1`
-5. Configure location of your image in trainer-job.yml
+5. Configure location of your image in trainer-deploy.yml
 ```
 spec:
     template:
