@@ -29,7 +29,7 @@ import time
 import cProfile
 
 from dataset import ImageNetDataset
-from model import Model
+from model import *
 
 from tensorboardX import SummaryWriter
 
@@ -66,13 +66,19 @@ parser.add_argument('--rank', type=int, default=0, metavar='N')
 
 args = parser.parse_args()
 
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
+
 # Global variables
 tb_logger = None
 profiler = None
 dataset = None
 log_dir = ""
 
-net = Model(args.model)
+# net = Model(args.model)
+net = ResNet50()
+classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
 if USE_CUDA:
     net.cuda()
 
@@ -108,7 +114,12 @@ def train(iter_count, inputs, targets):
     process_sync_grads(net)
     optimizer.step()
 
-    curr_mini_loss = loss.data[0]
+    train_loss += loss.item()
+    _, predicted = outputs.max(1)
+    total += targets.size(0)
+    correct += predicted.eq(targets).sum().item()
+
+    curr_mini_loss = train_loss
 
     epoch_end_time = time.time()
     epoch_time_taken = epoch_end_time - epoch_start_time
@@ -131,6 +142,35 @@ def train(iter_count, inputs, targets):
                     assert os.system(cmd) == 0
                 except Exception as e:
                     print("ERROR: gsutil failed!", e)
+
+def test(epoch):
+    global best_acc
+    net.eval()
+    test_loss = 0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(testloader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+
+            curr_mini_loss = test_loss/(batch_idx+1)
+            curr_mini_accuracy = 100.*correct/total
+
+            if iter_count%args.log_interval==0:
+                msg = '[iter: %d, ] Test Loss: %.3f %.3f' % (iter_count, curr_mini_loss, curr_accuracy)
+                print(iter_count, msg)
+
+                if not args.no_tensorboard:
+                    tb_logger.add_scalar('test/loss', curr_mini_loss, iter_count)
+                    tb_logger.add_scalar('test/accuracy', curr_mini_accuracy, iter_count)
+                    tb_logger.add_scalar('test/epoch_time_taken', epoch_time_taken, iter_count)
 
 def test(iter_count, inputs, targets):
     net.eval()
@@ -188,7 +228,7 @@ def main(rank, w_size):
             inputs, targets = inputs.cuda(), targets.cuda()
 
         train(iter_count, inputs, targets)
-        # test(iter_count, inputs, targets)
+        test(iter_count, inputs, targets)
 
 
 def init_processes(rank, w_size, fn, backend='nccl'):
