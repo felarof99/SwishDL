@@ -157,7 +157,7 @@ def test(iter_count, inputs, targets):
             tb_logger.add_scalar('test/loss', curr_mini_loss, iter_count)
             tb_logger.add_scalar('test/epoch_time_taken', epoch_time_taken, iter_count)
 
-def main():
+def main(rank, w_size):
     global tb_logger, profiler, dataset, flat_profiler, log_dir
 
     if not args.no_tensorboard:
@@ -217,7 +217,7 @@ def init_processes(rank, w_size, fn, backend='nccl'):
     os.environ['MASTER_ADDR'] = '10.142.0.4' # REPLACE
     os.environ['MASTER_PORT'] = '6988' # REPLACE
     dist.init_process_group(backend, rank=rank, world_size=w_size)
-    fn(rank, size)
+    fn(rank, w_size)
 
 
 def process_sync_grads(network):
