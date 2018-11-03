@@ -40,25 +40,19 @@ USE_CUDA = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser(description='Large scale ImageNet training!')
 parser.add_argument('--expid', type=str, default="", required=False)
-parser.add_argument('--zcom-port', type=int, default=4545, required=False)
 parser.add_argument('--model', type=str, default="resnet50", required=False)
+
 parser.add_argument('--epochs', type=int, default=1, metavar='N')
 parser.add_argument('--iter', type=int, default=300, metavar='N')
+parser.add_argument('--log-interval', type=int, default=1, metavar='N')
+
+parser.add_argument('--devices', type=int, default=1, metavar='N')
 parser.add_argument('--batch-size', type=int, default=32, metavar='N')
+
 parser.add_argument('--use-remote', action='store_true', default=False)
-parser.add_argument('--gpu-cached', action='store_true', default=False)
-parser.add_argument('--cpu-cached', action='store_true', default=False)
-parser.add_argument('--num-workers', type=int, default=1, metavar='N')
-parser.add_argument('--prefetch-workers', type=int, default=1, metavar='N')
-parser.add_argument('--prefetch-size', type=int, default=10, metavar='N')
 
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
-parser.add_argument('--test-batch-size', type=int, default=32, metavar='N')
-parser.add_argument('--log-interval', type=int, default=1, metavar='N')
 parser.add_argument('--weight-decay', type=float, default=1e-4)
-parser.add_argument('--devices', type=int, default=1, metavar='N')
-parser.add_argument('--world-size', type=int, default=1, metavar='N')
-parser.add_argument('--rank', type=int, default=0, metavar='N')
 
 parser.add_argument('--no-tensorboard', action='store_true', default=False)
 parser.add_argument('--no-profiler', action='store_true', default=False)
@@ -66,6 +60,8 @@ parser.add_argument('--profile-freq', type=float, default=1, metavar='N')
 parser.add_argument('--profile-networkio', action='store_true', default=False)
 parser.add_argument('--sync', action='store_true', default=False)
 
+parser.add_argument('--world-size', type=int, default=1, metavar='N')
+parser.add_argument('--rank', type=int, default=0, metavar='N')
 
 args = parser.parse_args()
 
@@ -73,7 +69,6 @@ args = parser.parse_args()
 tb_logger = None
 profiler = None
 dataset = None
-flat_profiler = None
 log_dir = ""
 
 net = Model(args.model)
@@ -94,6 +89,8 @@ scheduler = MultiStepLR(optimizer, milestones=[args.epochs*.25, args.epochs*.5,a
 
 # Training
 def train(iter_count, inputs, targets):
+    epoch_start_time = time.time()
+
     # Step count for decaying learning rate
     scheduler.step()
 
@@ -102,14 +99,11 @@ def train(iter_count, inputs, targets):
     correct = 0
     total = 0
 
-    epoch_start_time = time.time()
-
     optimizer.zero_grad()
-
     outputs = net(inputs)
-
     loss = criterion(outputs, targets)
     loss.backward()
+
     process_sync_grads(net)
     optimizer.step()
 
@@ -158,15 +152,15 @@ def test(iter_count, inputs, targets):
             tb_logger.add_scalar('test/epoch_time_taken', epoch_time_taken, iter_count)
 
 def main(rank, w_size):
-    global tb_logger, profiler, dataset, flat_profiler, log_dir
+    global tb_logger, profiler, dataset, log_dir
 
     if not args.no_tensorboard:
-        log_dir = os.path.join('log', args.expid,
+        log_dir = os.path.join('log', 
+            args.expid,
             args.model,
             datetime.now().isoformat())
 
         tb_logger = SummaryWriter(log_dir=log_dir)
-
 
     logger = Logger()
 
@@ -176,11 +170,6 @@ def main(rank, w_size):
 
     tb_logger.add_text('params/model', str(args.model), 1)
     tb_logger.add_text('params/batch_size', str(args.batch_size/args.world_size), 1)
-
-    iter_count = 0
-
-    flat_profiler = cProfile.Profile()
-    flat_profiler.enable()
 
     world_size = dist.get_world_size()
     sync_batch = args.batch_size / world_size
@@ -194,28 +183,22 @@ def main(rank, w_size):
                                 mini_batch_size=sync_batch,
                                 num_epochs=args.epochs)
 
-    while True:
-        if iter_count > args.iter:
-            flat_profiler.disable()
-            flat_profiler.dump_stats(log_dir+"/main_profile.stats")
-            return
-
-        iter_count = iter_count + 1
-
+    for iter_count in range(args.iter):
         inputs, targets, time_to_create_batch =  dataset.getNextBatch()
+        tb_logger.add_scalar('train/time_to_create_batch', time_to_create_batch, iter_count)
+
         inputs, targets = Variable(inputs), Variable(targets)
         if USE_CUDA:
             inputs, targets = inputs.cuda(), targets.cuda()
 
-        tb_logger.add_scalar('train/time_to_create_batch', time_to_create_batch, iter_count)
         train(iter_count, inputs, targets)
         # test(iter_count, inputs, targets)
 
 
 def init_processes(rank, w_size, fn, backend='nccl'):
     """ Initialize the distributed environment. """
-    os.environ['MASTER_ADDR'] = 'master-service' # REPLACE
-    os.environ['MASTER_PORT'] = '6988' # REPLACE
+    os.environ['MASTER_ADDR'] = 'master-service'
+    os.environ['MASTER_PORT'] = '6988'
     dist.init_process_group(backend, rank=rank, world_size=w_size)
     fn(rank, w_size)
 

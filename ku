@@ -23,7 +23,6 @@ cmd_init() { # initialize the cluster
     gcloud container clusters list
     cmd_daemonset
     cmd_cache_server_init
-    cmd_master_service_init
     cmd_add
 }
 
