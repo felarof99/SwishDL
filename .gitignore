@@ -10,5 +10,3 @@ dltrainer/test/*
 dltrainer/testdata/*
 dltrainer/log/*
 README.py
-dltrainer/dlinputs/
-dltrainer/output/
