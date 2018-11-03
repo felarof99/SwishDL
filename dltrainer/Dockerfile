@@ -89,7 +89,7 @@ RUN mkdir /home/$USER/large_scale_imagenet/testdata/
 WORKDIR /home/$USER/large_scale_imagenet/
 
 COPY ./*.py ./
-COPY ./testdata/*.tgz ./testdata/*.tgz
+COPY ./testdata/*.tgz ./testdata/
 
 # Setting cache-server as the proxy
 ENV http_proxy http://cache-layer-service:3128

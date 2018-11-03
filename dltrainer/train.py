@@ -172,11 +172,11 @@ def main():
     flat_profiler.enable()
 
     if args.use_remote:
-        dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000003.tgz", 
+        dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000001.tgz", 
                                 mini_batch_size=args.batch_size,
                                 num_epochs=args.epochs)
     else:
-        dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000003.tgz", 
+        dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000001.tgz", 
                                 mini_batch_size=args.batch_size,
                                 num_epochs=args.epochs)
 

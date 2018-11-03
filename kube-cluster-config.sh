@@ -8,4 +8,4 @@ gpu_machine=n1-standard-1
 gpu_type=nvidia-tesla-k80
 gpu_nodes=1
 gpu_per_node=1
-gpu_max_nodes=1
+gpu_max_nodes=5
