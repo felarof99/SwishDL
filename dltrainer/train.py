@@ -39,23 +39,27 @@ USE_CUDA = torch.cuda.is_available()
 
 parser = argparse.ArgumentParser(description='Large scale ImageNet training!')
 parser.add_argument('--expid', type=str, default="", required=False)
+parser.add_argument('--zcom-port', type=int, default=4545, required=False)
 parser.add_argument('--model', type=str, default="resnet50", required=False)
 parser.add_argument('--epochs', type=int, default=1, metavar='N')
 parser.add_argument('--iter', type=int, default=300, metavar='N')
-
 parser.add_argument('--batch-size', type=int, default=32, metavar='N')
 parser.add_argument('--use-remote', action='store_true', default=False)
 parser.add_argument('--gpu-cached', action='store_true', default=False)
 parser.add_argument('--cpu-cached', action='store_true', default=False)
+parser.add_argument('--num-workers', type=int, default=1, metavar='N')
+parser.add_argument('--prefetch-workers', type=int, default=1, metavar='N')
+parser.add_argument('--prefetch-size', type=int, default=10, metavar='N')
 
 parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+parser.add_argument('--test-batch-size', type=int, default=32, metavar='N')
+parser.add_argument('--log-interval', type=int, default=1, metavar='N')
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--devices', type=int, default=1, metavar='N')
-
 parser.add_argument('--no-tensorboard', action='store_true', default=False)
 parser.add_argument('--no-profiler', action='store_true', default=False)
 parser.add_argument('--profile-freq', type=float, default=1, metavar='N')
-parser.add_argument('--profile-networkio', action='store_true', default=False)
+parser.add_argument('--profile-network', action='store_true', default=False)
 
 args = parser.parse_args()
 
