@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/cloudinfra-219900/dloncloud:v10 # TODO Put location of your image on cloud repository
+        image: gcr.io/cloudinfra-219900/dloncloud:v11 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         - containerPort: 6988
@@ -37,6 +37,7 @@ spec:
         - "2"
         - "--rank"
         - "0"
+        - "--use-remote"
         resources:
           limits:
             nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
