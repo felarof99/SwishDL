@@ -19,12 +19,11 @@ class ImageNetDataset(object):
         self.epochs = num_epochs
 
         # Transformations to be applied on each sample
-        normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                         std=[0.229, 0.224, 0.225])
+        normalize = transforms.Normalize(mean=[0.4914, 0.4822, 0.4465],
+                                         std=[0.2023, 0.1994, 0.2010])
 
         self.transform = transforms.Compose([
-                    # transforms.RandomResizedCrop(224),
-                    transforms.RandomSizedCrop(224),
+                    transforms.RandomCrop(32, padding=4),
                     transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),
                     normalize,
@@ -39,9 +38,6 @@ class ImageNetDataset(object):
         # Each sample is a dict with 'png' and 'cls'
         img = sample['png']
         cls = sample['cls']
-
-        # Class range in the uploaded ImageNet shard is 1 to 1000, changing that to 0 to 1000
-        cls = cls-1
 
         # Convert to a PIL image and apply Transformation (TorchVision transforms requires the input to be PIL image)
         # img = Image.open(io.BytesIO(img))

@@ -41,6 +41,7 @@ USE_CUDA = torch.cuda.is_available()
 parser = argparse.ArgumentParser(description='Large scale ImageNet training!')
 parser.add_argument('--expid', type=str, default="", required=False)
 parser.add_argument('--model', type=str, default="resnet50", required=False)
+parser.add_argument('--shard-spec', type=str, default="http://storage.googleapis.com/lpr-demo/cifar10-train-000000.tgz", required=False)
 
 parser.add_argument('--epochs', type=int, default=1, metavar='N')
 parser.add_argument('--iter', type=int, default=300, metavar='N')
@@ -174,14 +175,9 @@ def main(rank, w_size):
     world_size = dist.get_world_size()
     sync_batch = args.batch_size / world_size
 
-    if args.use_remote:
-        dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000001.tgz",
-                                mini_batch_size=sync_batch,
-                                num_epochs=args.epochs)
-    else:
-        dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000001.tgz",
-                                mini_batch_size=sync_batch,
-                                num_epochs=args.epochs)
+    dataset = ImageNetDataset(shard_spec=args.shard_spec,
+                            mini_batch_size=sync_batch,
+                            num_epochs=args.epochs)
 
     for iter_count in range(args.iter):
         inputs, targets, time_to_create_batch =  dataset.getNextBatch()
