@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: imagenet-trainer
+  name: job1
 spec:
   template:
     metadata:
@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/sonic-column-220616/dloncloud:v6 # TODO Put location of your image on cloud repository
+        image: gcr.io/sonic-column-220616/dloncloud:v9 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         command: ["python"]

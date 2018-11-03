@@ -59,7 +59,9 @@ parser.add_argument('--devices', type=int, default=1, metavar='N')
 parser.add_argument('--no-tensorboard', action='store_true', default=False)
 parser.add_argument('--no-profiler', action='store_true', default=False)
 parser.add_argument('--profile-freq', type=float, default=1, metavar='N')
-parser.add_argument('--profile-network', action='store_true', default=False)
+parser.add_argument('--profile-networkio', action='store_true', default=False)
+parser.add_argument('--sync', action='store_true', default=False)
+
 
 args = parser.parse_args()
 
@@ -119,15 +121,16 @@ def train(iter_count, inputs, targets):
             tb_logger.add_scalar('train/loss', curr_mini_loss, iter_count)
             tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
 
-            try:
-                cmd = "gsutil rsync -r log gs://cloud-infra-logs/"
-                # cmd = "gsutil cp train.py gs://large-scale-dl/train.py"
-                
-                print("Running gsutil cmd", cmd)
+            if args.sync:
+                try:
+                    cmd = "gsutil rsync -r log gs://cloud-infra-logs/"
+                    # cmd = "gsutil cp train.py gs://large-scale-dl/train.py"
+                    
+                    print("Running gsutil cmd", cmd)
 
-                assert os.system(cmd) == 0
-            except Exception as e:
-                print("ERROR: gsutil failed!", e)
+                    assert os.system(cmd) == 0
+                except Exception as e:
+                    print("ERROR: gsutil failed!", e)
 
 def test(iter_count, inputs, targets):
     net.eval()
@@ -194,7 +197,8 @@ def main():
 
         inputs, targets, time_to_create_batch =  dataset.getNextBatch()
         inputs, targets = Variable(inputs), Variable(targets)
-        inputs, targets = inputs.cuda(), targets.cuda()
+        if USE_CUDA:
+            inputs, targets = inputs.cuda(), targets.cuda()
 
         tb_logger.add_scalar('train/time_to_create_batch', time_to_create_batch, iter_count)
         train(iter_count, inputs, targets)
