@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: imagenet-trainer2
+  name: job1
 spec:
   template:
     metadata:
@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/cloudinfra-219900/modified_trainer:v1 # TODO Put location of your image on cloud repository
+        image: gcr.io/cloudinfra-219900/dloncloud:v10 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         command: ["python"]
@@ -31,7 +31,7 @@ spec:
         - "0.5"
         - "--world-size"
         - "2"
-        - "rank"
+        - "--rank"
         - "1"
         resources:
           limits:

@@ -1,4 +1,4 @@
-apiVersion: batch/v1
+apiVersion: v1
 kind: ReplicationController
 metadata:
   name: job0
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/cloudinfra-219900/modified_trainer:v1 # TODO Put location of your image on cloud repository
+        image: gcr.io/cloudinfra-219900/dloncloud:v10 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         - containerPort: 6988
@@ -35,7 +35,7 @@ spec:
         - "0.5"
         - "--world-size"
         - "2"
-        - "rank"
+        - "--rank"
         - "0"
         resources:
           limits:
@@ -43,4 +43,4 @@ spec:
       nodeSelector:
         cloud.google.com/gke-accelerator: nvidia-tesla-k80
         ntype: master
-      restartPolicy: OnFailure
+      restartPolicy: Always

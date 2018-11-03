@@ -71,7 +71,7 @@ args = parser.parse_args()
 
 # Global variables
 tb_logger = None
-profiler = None 
+profiler = None
 dataset = None
 flat_profiler = None
 log_dir = ""
@@ -130,7 +130,7 @@ def train(iter_count, inputs, targets):
                 try:
                     cmd = "gsutil rsync -r log gs://cloud-infra-logs/"
                     # cmd = "gsutil cp train.py gs://large-scale-dl/train.py"
-                    
+
                     print("Running gsutil cmd", cmd)
 
                     assert os.system(cmd) == 0
@@ -161,8 +161,8 @@ def main(rank, w_size):
     global tb_logger, profiler, dataset, flat_profiler, log_dir
 
     if not args.no_tensorboard:
-        log_dir = os.path.join('log', args.expid, 
-            args.model, 
+        log_dir = os.path.join('log', args.expid,
+            args.model,
             datetime.now().isoformat())
 
         tb_logger = SummaryWriter(log_dir=log_dir)
@@ -183,14 +183,14 @@ def main(rank, w_size):
     flat_profiler.enable()
 
     world_size = dist.get_world_size()
-    sync_batch = args.batch_size / float(world_size)
+    sync_batch = args.batch_size / world_size
 
     if args.use_remote:
-        dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000001.tgz", 
+        dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000001.tgz",
                                 mini_batch_size=sync_batch,
                                 num_epochs=args.epochs)
     else:
-        dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000001.tgz", 
+        dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000001.tgz",
                                 mini_batch_size=sync_batch,
                                 num_epochs=args.epochs)
 
@@ -227,7 +227,7 @@ def process_sync_grads(network):
         param.grad.data /= world_size
 
 if __name__ == '__main__':
-    try: 
+    try:
         init_processes(args.rank, args.world_size, main)
         print('\nDone!')
         tb_logger.close() if tb_logger!=None else None
