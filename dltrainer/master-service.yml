@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: master-service
+spec:
+  selector:
+    app: master-service
+  ports:
+  - protocol: TCP
+    port: 6988
+    targetPort: 6988

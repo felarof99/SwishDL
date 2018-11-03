@@ -1,19 +1,23 @@
 apiVersion: batch/v1
-kind: Job
+kind: ReplicationController
 metadata:
-  name: imagenet-trainer
+  name: job0
 spec:
+  replicas: 1
+  selector:
+    app: master-service
   template:
     metadata:
       name: imagenet-trainer
       labels:
-        app: imagenet-trainer
+        app: master-service
     spec:
       containers:
       - name: imagenet-trainer
         image: gcr.io/cloudinfra-219900/modified_trainer:v1 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
+        - containerPort: 6988
         command: ["python"]
         args:
         - "train.py"

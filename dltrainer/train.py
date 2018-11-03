@@ -214,7 +214,7 @@ def main(rank, w_size):
 
 def init_processes(rank, w_size, fn, backend='nccl'):
     """ Initialize the distributed environment. """
-    os.environ['MASTER_ADDR'] = '10.142.0.4' # REPLACE
+    os.environ['MASTER_ADDR'] = 'master-service' # REPLACE
     os.environ['MASTER_PORT'] = '6988' # REPLACE
     dist.init_process_group(backend, rank=rank, world_size=w_size)
     fn(rank, w_size)

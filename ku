@@ -23,6 +23,7 @@ cmd_init() { # initialize the cluster
     gcloud container clusters list
     cmd_daemonset
     cmd_cache_server_init
+    cmd_master_service_init
     cmd_add
 }
 
@@ -34,6 +35,11 @@ cmd_daemonset() {
 cmd_cache_server_init() {
     kubectl create -f ./cache-server/service.yml
     kubectl create -f ./cache-server/deploy.yml
+}
+
+cmd_master_service_init() {
+    kubectl create -f ./dltrainer/master-service.yml
+    kubectl create -f ./dltrainer/trainer-deploy-0.yml
 }
 
 # Create a new node-pool with each node containing number of GPUs passed by argument
