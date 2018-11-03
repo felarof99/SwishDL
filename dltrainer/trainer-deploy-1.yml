@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: imagenet-trainer2
+spec:
+  template:
+    metadata:
+      name: imagenet-trainer
+      labels:
+        app: imagenet-trainer
+    spec:
+      containers:
+      - name: imagenet-trainer
+        image: gcr.io/cloudinfra-219900/modified_trainer:v1 # TODO Put location of your image on cloud repository
+        ports:
+        - containerPort: 4545
+        command: ["python"]
+        args:
+        - "train.py"
+        - "--expid"
+        - "v100-zmq"
+        - "--model"
+        - "resnet50"
+        - "--iter"
+        - "500"
+        - "--devices"
+        - "1" # TODO Set the number of GPUs required by your Job
+        - "--batch-size"
+        - "128"
+        - "--profile-freq"
+        - "0.5"
+        - "--world-size"
+        - "2"
+        - "rank"
+        - "1"
+        resources:
+          limits:
+            nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
+      nodeSelector:
+        cloud.google.com/gke-accelerator: nvidia-tesla-k80
+      restartPolicy: OnFailure

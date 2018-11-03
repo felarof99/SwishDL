@@ -68,12 +68,6 @@ cmd_stats() {
     kubectl get pods -a | awk '!/STATUS/{sub("-[a-z0-9]*$", "", $1); print $1, $3}' | sort | uniq -c
 }
 
-# Build the cloud image
-cmd_build() {
-    git submodule update --remote --merge
-    gcloud container builds submit --tag $image --timeout=3600 .
-}
-
 # Kill the cluster
 cmd_kill() {
     yes | gcloud container clusters delete $cluster
@@ -94,14 +88,6 @@ cmd_run() {
     target=$1
     shift
     kubectl exec -ti $(getpod $target) "${@:-/bin/bash}"
-}
-
-# Connect to a cluster
-cmd_forward() {
-    target="$1"
-    shift
-    match=$(getpod $target)
-    kubectl port-forward "$match" "$@"
 }
 
 # Print log

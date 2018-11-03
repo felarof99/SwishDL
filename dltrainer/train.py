@@ -15,6 +15,7 @@ import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import MultiStepLR
+import torch.distributed as dist
 
 import torchvision
 import torchvision.transforms as transforms
@@ -56,6 +57,9 @@ parser.add_argument('--test-batch-size', type=int, default=32, metavar='N')
 parser.add_argument('--log-interval', type=int, default=1, metavar='N')
 parser.add_argument('--weight-decay', type=float, default=1e-4)
 parser.add_argument('--devices', type=int, default=1, metavar='N')
+parser.add_argument('--world-size', type=int, default=1, metavar='N')
+parser.add_argument('--rank', type=int, default=0, metavar='N')
+
 parser.add_argument('--no-tensorboard', action='store_true', default=False)
 parser.add_argument('--no-profiler', action='store_true', default=False)
 parser.add_argument('--profile-freq', type=float, default=1, metavar='N')
@@ -106,6 +110,7 @@ def train(iter_count, inputs, targets):
 
     loss = criterion(outputs, targets)
     loss.backward()
+    process_sync_grads(net)
     optimizer.step()
 
     curr_mini_loss = loss.data[0]
@@ -158,7 +163,6 @@ def main():
     if not args.no_tensorboard:
         log_dir = os.path.join('log', args.expid, 
             args.model, 
-            "batch_size_"+str(args.batch_size),
             datetime.now().isoformat())
 
         tb_logger = SummaryWriter(log_dir=log_dir)
@@ -171,20 +175,23 @@ def main():
         profiler.log(log_network=args.profile_networkio)
 
     tb_logger.add_text('params/model', str(args.model), 1)
-    tb_logger.add_text('params/batch_size', str(args.batch_size), 1)
+    tb_logger.add_text('params/batch_size', str(args.batch_size/args.world_size), 1)
 
     iter_count = 0
 
     flat_profiler = cProfile.Profile()
     flat_profiler.enable()
 
+    world_size = dist.get_world_size()
+    sync_batch = args.batch_size / float(world_size)
+
     if args.use_remote:
         dataset = ImageNetDataset(shard_spec="http://storage.googleapis.com/lpr-imagenet/imagenet_train-@000001.tgz", 
-                                mini_batch_size=args.batch_size,
+                                mini_batch_size=sync_batch,
                                 num_epochs=args.epochs)
     else:
         dataset = ImageNetDataset(shard_spec="testdata/imagenet_train-@000001.tgz", 
-                                mini_batch_size=args.batch_size,
+                                mini_batch_size=sync_batch,
                                 num_epochs=args.epochs)
 
     while True:
@@ -202,11 +209,26 @@ def main():
 
         tb_logger.add_scalar('train/time_to_create_batch', time_to_create_batch, iter_count)
         train(iter_count, inputs, targets)
-        test(iter_count, inputs, targets)
+        # test(iter_count, inputs, targets)
+
+
+def init_processes(rank, w_size, fn, backend='nccl'):
+    """ Initialize the distributed environment. """
+    os.environ['MASTER_ADDR'] = '10.142.0.4' # REPLACE
+    os.environ['MASTER_PORT'] = '6988' # REPLACE
+    dist.init_process_group(backend, rank=rank, world_size=w_size)
+    fn(rank, size)
+
+
+def process_sync_grads(network):
+    world_size = dist.get_world_size()
+    for param in network.parameters():
+        dist.all_reduce(param.grad.data, op=dist.reduce_op.SUM, group=0)
+        param.grad.data /= world_size
 
 if __name__ == '__main__':
     try: 
-        main()
+        init_processes(args.rank, args.world_size, main)
         print('\nDone!')
         tb_logger.close() if tb_logger!=None else None
         profiler.stop() if profiler!=None else None
