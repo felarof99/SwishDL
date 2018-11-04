@@ -20,7 +20,7 @@ spec:
         - "--expid"
         - "4nodes"
         - "--iter"
-        - "500"
+        - "3000"
         - "--devices"
         - "1" # TODO Set the number of GPUs required by your Job
         - "--batch-size"
