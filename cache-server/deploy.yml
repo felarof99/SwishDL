@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: cache-server
-        image: gcr.io/sonic-column-220616/cache-server:v2
+        image: gcr.io/cloudinfra-219900/cache-server:v1
         ports:
         - containerPort: 3128
