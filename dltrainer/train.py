@@ -124,7 +124,8 @@ def train(epoch):
         outputs = net(inputs)
         loss = criterion(outputs, targets)
         loss.backward()
-        process_sync_grads(net)
+        if args.world_size>1:
+            process_sync_grads(net)
         optimizer.step()
 
         train_loss += loss.item()
@@ -174,7 +175,7 @@ def test(epoch):
             tb_logger.add_scalar('test/accuracy', 100.*correct/total, epoch)
 
 
-def main(rank, w_size):
+def main(rank, world_size):
     global tb_logger, profiler, dataset, log_dir, trainloader, testloader
 
     if not args.no_tensorboard:
@@ -190,9 +191,8 @@ def main(rank, w_size):
         profiler = Profiler(logger, tb_logger, freq=args.profile_freq)
         profiler.log(log_network=args.profile_networkio)
 
-    tb_logger.add_text('params/batch_size', str(args.batch_size/args.world_size), 1)
+    tb_logger.add_text('params/batch_size', str(args.batch_size/world_size), 1)
 
-    world_size = dist.get_world_size()
     sync_batch = args.batch_size / world_size
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
@@ -222,7 +222,10 @@ def process_sync_grads(network):
 
 if __name__ == '__main__':
     try:
-        init_processes(args.rank, args.world_size, main)
+        if args.world_size>1:
+            init_processes(args.rank, args.world_size, main)
+        else:
+            main(0, 1)
         print('\nDone!')
         tb_logger.close() if tb_logger!=None else None
         profiler.stop() if profiler!=None else None

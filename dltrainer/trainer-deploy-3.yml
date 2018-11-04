@@ -18,21 +18,19 @@ spec:
         args:
         - "train.py"
         - "--expid"
-        - "4nodes"
-        - "--iter"
-        - "3000"
+        - "newcifar4"
         - "--devices"
         - "1" # TODO Set the number of GPUs required by your Job
         - "--batch-size"
         - "128"
         - "--profile-freq"
         - "0.5"
+        - "--log-interval"
+        - "100"
         - "--world-size"
-        - "4"
+        - "2"
         - "--rank"
-        - "3"
-        - "--shard-spec"
-        - "http://storage.googleapis.com/lpr-demo/cifar10-train-000003.tgz"
+        - "1"
         resources:
           limits:
             nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
