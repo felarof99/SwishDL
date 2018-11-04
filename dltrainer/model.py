@@ -5,28 +5,6 @@ import torchvision
 import torchvision.models as models
 import numpy as np
 
-class Model(nn.Module):
-    def __init__(self, model):
-        super(Model, self).__init__()
-        if model=="resnet50":
-            self.model = models.resnet50()
-        elif model=="resnet101":
-            self.model = models.resnet101()
-        elif model=="resnet152":
-            self.model = models.resnet152()
-        else:
-            self.model = models.resnet50()
-
-    def forward(self, x):
-        return self.model(x)
-
-
-'''ResNet in PyTorch.
-For Pre-activation ResNet, see 'preact_resnet.py'.
-Reference:
-[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
-    Deep Residual Learning for Image Recognition. arXiv:1512.03385
-'''
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -98,6 +76,16 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         self.linear = nn.Linear(512*block.expansion, num_classes)
 
+        # for m in self.modules():
+        #     if isinstance(m, nn.Conv2d):
+        #         nn.init.kaiming_normal(m.weight.data)
+        #     elif isinstance(m, nn.BatchNorm2d):
+        #         m.weight.data.fill_(1)
+        #         m.bias.data.zero_()
+        #     elif isinstance(m, nn.Linear):
+        #         m.weight.data.normal_(0, 0.01)
+        #         m.bias.data.zero_()
+
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
         layers = []
@@ -134,7 +122,17 @@ def ResNet152():
     return ResNet(Bottleneck, [3,8,36,3])
 
 
-def test():
-    net = ResNet18()
-    y = net(torch.randn(1,3,32,32))
-    print(y.size())
+# class Model(nn.Module):
+#     def __init__(self, model):
+#         super(Model, self).__init__()
+#         if model=="resnet50":
+#             self.model = models.resnet50()
+#         elif model=="resnet101":
+#             self.model = models.resnet101()
+#         elif model=="resnet152":
+#             self.model = models.resnet152()
+#         else:
+#             self.model = models.resnet50()
+
+#     def forward(self, x):
+#         return self.model(x)
