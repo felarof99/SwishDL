@@ -1,23 +1,19 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: job0
+  name: job3
 spec:
-  replicas: 1
-  selector:
-    app: master-service
   template:
     metadata:
       name: imagenet-trainer
       labels:
-        app: master-service
+        app: imagenet-trainer
     spec:
       containers:
       - name: imagenet-trainer
         image: gcr.io/sonic-column-220616/dloncloud:v20 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
-        - containerPort: 6988
         command: ["python"]
         args:
         - "train.py"
@@ -34,12 +30,12 @@ spec:
         - "--world-size"
         - "4"
         - "--rank"
-        - "0"
+        - "3"
         - "--shard-spec"
-        - "http://storage.googleapis.com/lpr-demo/cifar10-train-000000.tgz"
+        - "http://storage.googleapis.com/lpr-demo/cifar10-train-000003.tgz"
         resources:
           limits:
             nvidia.com/gpu: 1 # TODO Set this number to same as the number of GPUs required by your Job
       nodeSelector:
         cloud.google.com/gke-accelerator: nvidia-tesla-k80
-      restartPolicy: Always
+      restartPolicy: OnFailure

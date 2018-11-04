@@ -49,7 +49,7 @@ cmd_add() {
     --zone $zone \
     --scopes $scopes \
     --num-nodes $gpu_nodes \
-    --enable-autoscaling --min-nodes 1 --max-nodes $gpu_max_nodes \
+    --enable-autoscaling --min-nodes $gpu_nodes --max-nodes $gpu_max_nodes \
     --machine-type ${gpu_machine:-n1-standard-16}
 }
 
