@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/sonic-column-220616/dloncloud:v40 # TODO Put location of your image on cloud repository
+        image: gcr.io/sonic-column-220616/dloncloud:v50 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         - containerPort: 6988
@@ -22,7 +22,7 @@ spec:
         args:
         - "train.py"
         - "--expid"
-        - "newcifar4"
+        - "2workers-v1"
         - "--devices"
         - "1" # TODO Set the number of GPUs required by your Job
         - "--batch-size"
