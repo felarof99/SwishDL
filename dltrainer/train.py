@@ -58,6 +58,10 @@ parser.add_argument('--profile-networkio', action='store_true', default=False)
 parser.add_argument('--world-size', type=int, default=1, metavar='N')
 parser.add_argument('--rank', type=int, default=0, metavar='N')
 
+parser.add_argument('--split-by', type=int, default=1, metavar='N')
+parser.add_argument('--split-to-use', type=int, default=0, metavar='N')
+
+
 args = parser.parse_args()
 
 print('==> Preparing data..')
@@ -196,7 +200,8 @@ def main(rank, world_size):
     sync_batch = args.batch_size / world_size
 
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=sync_batch, shuffle=True, num_workers=2)
+    trainset.train_data = np.split(trainset.train_data, args.split_by)[args.split_to_use]
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=sync_batch, shuffle=False, num_workers=2)
 
     testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=2)
