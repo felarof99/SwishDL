@@ -22,7 +22,7 @@ spec:
         args:
         - "train.py"
         - "--expid"
-        - "2workers-v1"
+        - "4workers-v1"
         - "--devices"
         - "1" # TODO Set the number of GPUs required by your Job
         - "--batch-size"
@@ -32,11 +32,11 @@ spec:
         - "--profile-freq"
         - "0.5"
         - "--world-size"
-        - "2"
+        - "4"
         - "--rank"
         - "0"
         - "--split-by"
-        - "2"
+        - "4"
         - "--split-to-use"
         - "0"
         resources:
