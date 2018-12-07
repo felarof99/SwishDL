@@ -137,9 +137,6 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        epoch_end_time = time.time()
-        epoch_time_taken = epoch_end_time - epoch_start_time
-
         if iter_count%args.log_interval==0:
             msg = '[epoch: %d iter: %d] Loss: %.3f | Acc: %.3f%% (%d/%d)' % (epoch, iter_count, train_loss/(batch_idx+1), 100.*correct/total, correct, total)
             print(msg)
@@ -149,6 +146,12 @@ def train(epoch):
                 tb_logger.add_scalar('train/accuracy', 100.*correct/total, iter_count)
                 tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
 
+    epoch_end_time = time.time()
+    epoch_time_taken = epoch_end_time - epoch_start_time
+
+    if not args.no_tensorboard:
+        tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
+        
 def test(epoch):
     net.eval()
     test_loss = 0
