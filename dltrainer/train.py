@@ -144,14 +144,13 @@ def train(epoch):
             if not args.no_tensorboard:
                 tb_logger.add_scalar('train/loss', train_loss/(batch_idx+1), iter_count)
                 tb_logger.add_scalar('train/accuracy', 100.*correct/total, iter_count)
-                tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
 
     epoch_end_time = time.time()
     epoch_time_taken = epoch_end_time - epoch_start_time
 
     if not args.no_tensorboard:
         tb_logger.add_scalar('train/epoch_time_taken', epoch_time_taken, iter_count)
-        
+
 def test(epoch):
     net.eval()
     test_loss = 0
