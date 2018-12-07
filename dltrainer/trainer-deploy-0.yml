@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: imagenet-trainer
-        image: gcr.io/sonic-column-220616/dloncloud:v90 # TODO Put location of your image on cloud repository
+        image: gcr.io/sonic-column-220616/dloncloud:v91 # TODO Put location of your image on cloud repository
         ports:
         - containerPort: 4545
         - containerPort: 6988
