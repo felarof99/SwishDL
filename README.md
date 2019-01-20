@@ -1,5 +1,5 @@
 
-# large-scale-dl
+# MachinaDL
 
 ## Description
 This repo contains scripts and instructions to create your own Cloud Layer for efficiently running and scaling your DL training jobs.
